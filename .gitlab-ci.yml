@@ -4,7 +4,7 @@ stages:
 
 flake8:
   stage: qa
-  image: python:3.6.3
+  image: python:3.9.1
   before_script:
     - pip install -e git+https://gitlab.com/pycqa/flake8@9631dac5#egg=flake8
   script:
@@ -12,9 +12,10 @@ flake8:
 
 build:
   stage: build
-  image: python:3.6.3
+  image: python:3.9.1
   before_script:
-    - pip install -U pip twine setuptools wheel
+    - pip install -U pip
+    - pip install -U twine setuptools wheel
   script:
     - python setup.py sdist
     - twine upload dist/* -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} --skip-existing
