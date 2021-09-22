@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import path, re_path, include
 from django.views.decorators.csrf import csrf_exempt
 from pico.conf import settings as pico
-from .views import PodcastListView, PodcastPingView
+from .views import PodcastListView, PodcastPingView, ContentListView
 
 
 urlpatterns = (
@@ -11,6 +11,7 @@ urlpatterns = (
     path('admin/', admin.site.urls),
     path('markdownx/', include('markdownx.urls')),
     path('~/ping/', csrf_exempt(PodcastPingView.as_view()), name='api_ping'),
+    path('~/content/', ContentListView.as_view(), name='content_list'),
     path('', PodcastListView.as_view(), name='podcast_list')
 )
 

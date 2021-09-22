@@ -105,7 +105,7 @@
 			var index = this.index,
         blogData = this.blogData;
 
-        var url = site_url + "/ghost/api/v4/content/posts/?key=" + search_api_key + "&limit=all&fields=id,title,url,published_at,feature_image&formats=plaintext";
+        var url = site_url + "~/content/?key=" + search_api_key + "&limit=all&fields=id,title,url,published_at,feature_image&formats=plaintext";
 
       $.get(url).done(function(data) {
         searchData = data.posts;

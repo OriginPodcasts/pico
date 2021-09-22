@@ -1,11 +1,15 @@
 from django.http.response import HttpResponse, HttpResponseBadRequest
+from django.utils import timezone
 from django.views.generic.base import View
 from django.views.generic.list import ListView
+from markdown import markdown
 from pico.conf import settings
-from pico.podcasts.models import Podcast, Page
+from pico.podcasts.models import Podcast, Page, Episode, Post
 from pico.podcasts.tasks import update_feed
 from pico.seo.mixins import SEOMixin, OpenGraphMixin
+import json
 import re
+import time
 
 
 LINK_REGEX = re.compile(r'^\<([^\>]+)\>')
@@ -98,3 +102,103 @@ class PodcastPingView(View):
                     return HttpResponse('OK')
 
         return HttpResponseBadRequest('FAIL')
+
+
+class ContentListView(View):
+    def get_fields(self):
+        if not hasattr(self, 'fields'):
+            self.fields = self.request.GET.get(
+                'fields',
+                'id,title,url,published_at,feature_image'
+            ).split(',')
+
+        return self.fields
+
+    def get_formats(self):
+        if not hasattr(self, 'formats'):
+            self.formats = self.request.GET.get(
+                'formats',
+                'plaintext'
+            ).split(',')
+
+        return self.formats
+
+    def get_querysets(self):
+        limit = self.request.GET.get('limit', 'all')
+        querysets = [
+            Episode.objects.all(),
+            Post.objects.filter(
+                published__lte=timezone.now()
+            )
+        ]
+
+        if 'published_at' not in self.get_fields():
+            querysets.append(
+                Page.objects.all()
+            )
+
+        if limit != 'all':
+            limit = int(limit)
+
+            for queryset in querysets:
+                queryset = queryset[:limit]
+
+        return querysets
+
+    def serialise_object(self, obj):
+        fields = self.get_fields()
+        formats = self.get_formats()
+        data = {
+            'id': '%s.%s:%s' % (
+                obj._meta.app_label,
+                obj._meta.model_name,
+                obj.pk
+            )
+        }
+
+        if 'title' in fields:
+            data['title'] = str(obj)
+
+        if 'url' in fields:
+            data['url'] = obj.get_absolute_url()
+
+        if 'published_at' in fields:
+            if isinstance(obj, (Episode, Post)):
+                data['published_at'] = obj.published.isoformat()
+
+        if 'feature_image' in fields:
+            data['feature_image'] = ''
+
+            if isinstance(obj, Episode) and obj.artwork:
+                data['feature_image'] = obj.artwork.url
+            elif isinstance(obj, (Post, Page)) and obj.image:
+                data['feature_image'] = obj.image.url
+
+        if 'plaintext' in formats:
+            if isinstance(obj, Episode):
+                data['plaintext'] = obj.feed_description or obj.body
+            else:
+                data['plaintext'] = obj.body
+
+        if 'html' in formats:
+            if isinstance(obj, Episode):
+                data['html'] = markdown(obj.feed_description or obj.body)
+            else:
+                data['html'] = markdown(obj.body)
+
+        return data
+
+    def get_object_list(self):
+        for queryset in self.get_querysets():
+            for obj in queryset:
+                yield self.serialise_object(obj)
+
+    def get(self, request):
+        return HttpResponse(
+            json.dumps(
+                {
+                    'posts': list(self.get_object_list())
+                }
+            ),
+            content_type='application/json'
+        )
