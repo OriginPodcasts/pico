@@ -9,7 +9,6 @@ from pico.podcasts.tasks import update_feed
 from pico.seo.mixins import SEOMixin, OpenGraphMixin
 import json
 import re
-import time
 
 
 LINK_REGEX = re.compile(r'^\<([^\>]+)\>')
@@ -182,6 +181,8 @@ class ContentListView(View):
                 data['feature_image'] = obj.artwork.url
             elif isinstance(obj, (Post, Page)) and obj.image:
                 data['feature_image'] = obj.image.url
+            elif obj.podcast_id and obj.podcast.artwork:
+                data['feature_image'] = obj.podcast.artwork.url
 
         if 'plaintext' in formats:
             if isinstance(obj, Episode):
