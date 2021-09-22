@@ -8,7 +8,6 @@
     {% endif %}
 
     <script>
-        window.site_url = '{{ base_url }}'
         {% if page_obj.has_next %}window.pagination_next_page_number = {{ page_obj.next_page_number }}{% endif %}
         window.pagination_available_pages_number = {{ page_obj.paginator.num_pages }}
         window.posts_total_number = {{ page_obj.paginator.count }}
