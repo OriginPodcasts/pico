@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"></noscript>
     <script src="{% static 'js/darkmode.js' %}"></script>
-    <script>window.site_url = '{{ base_url }}'; window.search_api_key = '';</script>
+    <script>window.site_url = '/'; window.search_api_key = '';</script>
 {% endblock css %}
 
 {% block body %}
@@ -61,8 +61,6 @@
             </header>
         {% endblock header %}
 
-        {% block pre_main %}{% endblock %}
-
         <div class="o-wrapper">
             {% block main %}{% endblock %}
 
@@ -89,6 +87,28 @@
                     </div>
                 </div>
             </footer>
+        </div>
+    </div>
+
+    <div class="c-search js-search">
+        <div class="o-grid">
+            <div class="o-grid__col o-grid__col--4-4-s o-grid__col--3-4-m o-grid__col--2-4-l o-grid__col--center">
+                <form class="c-search__form">
+                    <span class="c-search__icon" data-icon="ei-search" data-size="m"></span>
+                    <label for="search-form-input" class="u-hidden-visually">Search the site</label>
+                    <input type="search" id="search-form-input" aria-label="Search the site" class="c-search__input js-search-input" placeholder="Type to search">
+                </form>
+            </div>
+        </div>
+
+        <div class="o-grid">
+            <div class="o-grid__col o-grid__col--4-4-s o-grid__col--3-4-m o-grid__col--2-4-l o-grid__col--center">
+                <div class="c-search-results js-search-results"></div>
+            </div>
+        </div>
+
+        <div class="c-search__close js-search-close">
+            <div data-icon="ei-close" data-size="s"></div>
         </div>
     </div>
 {% endblock body %}
