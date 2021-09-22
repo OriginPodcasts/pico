@@ -4,7 +4,7 @@
 {% block head %}
     {{ block.super }}
     {% if page_obj.has_next %}
-        <link rel="next" href="/?page={{ page_obj.next_page_number }}">
+        <link rel="next" href="{{ base_url }}?page={{ page_obj.next_page_number }}">
     {% endif %}
 
     <script>
@@ -150,11 +150,11 @@
         </p>
     {% endif %}
 
-    <div class="o-grid">
-        {% if page_obj.has_next %}
+    {% if page_obj.has_next %}
+        <div class="o-grid">
             <div class="o-grid__col o-grid__col--center o-grid__col--4-4-s o-grid__col--2-4-m o-grid__col--1-4-l">
                 <button class="c-btn c-btn--full js-load-posts">Load more</button>
             </div>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 {% endblock main %}
