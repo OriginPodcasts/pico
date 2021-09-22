@@ -113,10 +113,13 @@ class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
     paginate_by = 10
 
     def get_seo_title(self):
-        return '%s – %s' % (
-            self.request.podcast.name,
-            self.request.podcast.subtitle
-        )
+        if self.request.podcast.subtitle:
+            return '%s – %s' % (
+                self.request.podcast.name,
+                self.request.podcast.subtitle
+            )
+
+        return self.request.podcast.name
 
     def get_queryset(self):
         queryset = super().get_queryset().filter(
@@ -242,7 +245,10 @@ class PostListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
     paginate_by = 10
 
     def get_seo_title(self):
-        return 'Blog – %s' % self.request.podcast.subtitle
+        if self.request.podcast.subtitle:
+            return 'Blog – %s' % self.request.podcast.subtitle
+
+        return 'Blog'
 
     def get_queryset(self):
         queryset = super().get_queryset().filter(
