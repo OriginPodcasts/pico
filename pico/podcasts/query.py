@@ -1,7 +1,7 @@
 from dateutil.parser import parse as parse_date
 from django.db import transaction
 from django.db.models import QuerySet
-from django.utils import html, text
+from django.utils import html, text, timezone
 from feedparser import parse as parse_feed
 from html2text import html2text
 from urllib.parse import urlparse
@@ -125,3 +125,10 @@ class EpisodeQuerySet(QuerySet):
             callback(episode)
 
         return episode
+
+
+class PostQuerySet(QuerySet):
+    def published(self):
+        return self.filter(
+            published__lte=timezone.now()
+        )

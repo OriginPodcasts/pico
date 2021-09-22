@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     'markdownx',
     'easy_thumbnails',
     'django_rq',
+    'watson',
     'pico.podcasts',
     'pico.seo',
     'pico.miditags',

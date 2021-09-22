@@ -8,7 +8,7 @@ from html2text import html2text
 from markdownx.models import MarkdownxField
 from pico.conf import settings
 from urllib.parse import urlparse
-from .query import PodcastQuerySet, EpisodeQuerySet
+from .query import PodcastQuerySet, EpisodeQuerySet, PostQuerySet
 from .utils import download, compare_image
 import os
 import re
@@ -429,6 +429,8 @@ class Episode(models.Model):
 
 
 class Post(models.Model):
+    objects = PostQuerySet.as_manager()
+
     def upload_image(self, filename):
         if self.podcast:
             return 'podcasts/%s/blog/%s%s' % (

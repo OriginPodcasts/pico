@@ -1,6 +1,7 @@
 dj-database-url==0.5.0
 django-markdownx==3.0.1
 django-rq==2.4.1
+django-watson==1.5.5
 Django==3.2.6
 easy-thumbnails==2.7.1
 feedparser==6.0.8
