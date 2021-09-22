@@ -1,12 +1,13 @@
 from dateutil.parser import parse as parse_date
 from django.db import models
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import html, text
 from feedparser import parse as parse_feed
 from html2text import html2text
 from markdownx.models import MarkdownxField
+from pico.conf import settings
 from urllib.parse import urlparse
-from django.template.loader import render_to_string
 from .query import PodcastQuerySet, EpisodeQuerySet
 from .utils import download, compare_image
 import os
@@ -32,7 +33,7 @@ class Podcast(models.Model):
 
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=30, unique=True)
-    domain = models.CharField(max_length=100, unique=True)
+    domain = models.CharField(max_length=100, null=True, blank=True)
     rss_feed_url = models.URLField('RSS feed URL', max_length=255, unique=True)
 
     artwork = models.ImageField(
@@ -151,6 +152,24 @@ class Podcast(models.Model):
 
         return self.__apple_podcasts_id
 
+    def reverse(self, urlname, args=(), kwargs={}):
+        if settings.DOMAINS_OR_SLUGS == 'slugs':
+            if any(kwargs):
+                kwargs['podcast'] = self.slug
+            else:
+                args = (self.slug,) + args
+
+        return reverse(urlname, args=args, kwargs=kwargs)
+
+    def build_absolute_uri(self, path=''):
+        while path.startswith('/'):
+            path = path[1:]
+
+        if settings.DOMAINS_OR_SLUGS == 'slugs':
+            return '/%s/%s' % (self.slug, path)
+
+        return '//%s/%s' % (self.domain, path)
+
     class Meta:
         ordering = ('name',)
 
@@ -232,7 +251,7 @@ class Season(models.Model):
         return self.name or ('Season %d' % self.number)
 
     def get_absolute_url(self):
-        return reverse('season', args=(self.number,))
+        return self.podcast.reverse('season', args=(self.number,))
 
     class Meta:
         unique_together = ('number', 'podcast')
@@ -274,12 +293,6 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-
-    def get_absolute_url(self):
-        return '%s?category=%s' % (
-            reverse('episode_list'),
-            self.slug
-        )
 
     class Meta:
         ordering = ('name',)
@@ -361,7 +374,7 @@ class Episode(models.Model):
     def get_absolute_url(self):
         if self.season_id:
             if self.trailer:
-                return reverse(
+                return self.podcast.reverse(
                     'season_episode_trailer_detail',
                     args=(
                         self.season.number,
@@ -369,7 +382,7 @@ class Episode(models.Model):
                 )
 
             if self.bonus:
-                return reverse(
+                return self.podcast.reverse(
                     'season_episode_bonus_detail',
                     args=(
                         self.season.number,
@@ -377,7 +390,7 @@ class Episode(models.Model):
                     )
                 )
 
-            return reverse(
+            return self.podcast.reverse(
                 'season_episode_detail',
                 args=(
                     self.season.number,
@@ -386,12 +399,14 @@ class Episode(models.Model):
             )
 
         if self.trailer:
-            return reverse('episode_trailer_detail')
+            return self.podcast.reverse('episode_trailer_detail')
 
         if self.bonus:
-            return reverse('episode_bonus_detail', args=(self.number,))
+            return self.podcast.reverse(
+                'episode_bonus_detail', args=(self.number,)
+            )
 
-        return reverse('episode_detail', args=(self.number,))
+        return self.podcast.reverse('episode_detail', args=(self.number,))
 
     @property
     def player_html(self):
@@ -455,7 +470,7 @@ class Post(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('blogpost_detail', args=(self.slug,))
+        return self.podcast.reverse('blogpost_detail', args=(self.slug,))
 
     class Meta:
         unique_together = ('slug', 'podcast')
@@ -501,7 +516,7 @@ class Page(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('page_detail', args=(self.slug,))
+        return self.podcast.reverse('page_detail', args=(self.slug,))
 
     class Meta:
         unique_together = ('slug', 'podcast')

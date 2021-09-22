@@ -1,7 +1,8 @@
-from django.conf import settings
+from django.conf import settings as django
 from django.contrib import admin
 from django.urls import path, re_path, include
 from django.views.decorators.csrf import csrf_exempt
+from pico.conf import settings as pico
 from .views import PodcastListView, PodcastPingView
 
 
@@ -13,8 +14,7 @@ urlpatterns = (
     path('', PodcastListView.as_view(), name='podcast_list')
 )
 
-
-if settings.DEBUG:
+if django.DEBUG:
     from django.views.static import serve as static_serve
 
     urlpatterns += (
@@ -22,7 +22,13 @@ if settings.DEBUG:
             r'^media/(?P<path>.*)$',
             static_serve,
             {
-                'document_root': settings.MEDIA_ROOT
+                'document_root': django.MEDIA_ROOT
             }
         ),
+    )
+
+
+if pico.DOMAINS_OR_SLUGS == 'slugs':
+    urlpatterns += (
+        path('<podcast>/', include('pico.podcasts.urls')),
     )

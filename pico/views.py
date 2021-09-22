@@ -15,6 +15,32 @@ class PodcastListView(SEOMixin, OpenGraphMixin, ListView):
     model = Podcast
     template_name = 'index.html'
 
+    def get_menu_items(self):
+        if settings.DOMAINS_OR_SLUGS == 'slugs':
+            yield {
+                'url': '/',
+                'text': 'Home'
+            }
+
+            for podcast in Podcast.objects.all():
+                yield {
+                    'url': '/%s/' % podcast.slug,
+                    'text': podcast.name
+                }
+
+            return
+
+    def build_menu(self):
+        items = list(self.get_menu_items())
+
+        for item in items:
+            if item['url'] == self.request.path:
+                item['active'] = True
+
+            item['url'] = self.request.build_absolute_uri(item['url'])
+
+        return items
+
     def get_seo_title(self):
         network_name = settings.NETWORK_NAME
         network_subtitle = settings.network_subtitle
@@ -26,6 +52,12 @@ class PodcastListView(SEOMixin, OpenGraphMixin, ListView):
             )
 
         return network_name
+
+    def get_context_data(self, **kwargs):
+        return {
+            'menu_items': self.build_menu(),
+            **super().get_context_data(**kwargs)
+        }
 
 
 class PodcastPingView(View):

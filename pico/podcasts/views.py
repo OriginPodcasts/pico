@@ -1,19 +1,33 @@
 from django.http.response import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
 from django.utils import timezone
 from django.views.generic.base import View
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+from pico.conf import settings
 from pico.seo.mixins import (
     SEOMixin, OpenGraphMixin, OpenGraphArticleMixin
 )
 
-from .models import Episode, Season, Post, Page, Category
+from .models import Podcast, Episode, Season, Post, Page, Category
 
 
 class PodcastMixin(object):
     def get_menu_items(self):
+        if settings.DOMAINS_OR_SLUGS == 'slugs':
+            yield {
+                'url': self.request.build_absolute_uri('/'),
+                'text': 'Home'
+            }
+
+            for podcast in Podcast.objects.all():
+                yield {
+                    'url': podcast.build_absolute_uri(),
+                    'text': podcast.name
+                }
+
+            return
+
         yield {
             'url': '/',
             'text': 'Home'
@@ -21,19 +35,25 @@ class PodcastMixin(object):
 
         for season in self.request.podcast.seasons.order_by('-number'):
             yield {
-                'url': reverse('season', args=(season.number,)),
+                'url': self.request.podcast.reverse(
+                    'season',
+                    args=(season.number,)
+                ),
                 'text': str(season)
             }
 
         if self.request.podcast.blog_posts.exists():
             yield {
-                'url': reverse('blogpost_list'),
+                'url': self.request.podcast.reverse('blogpost_list'),
                 'text': 'Blog'
             }
 
         for page in self.request.podcast.pages.filter(menu_visible=True):
             yield {
-                'url': reverse('page_detail', args=(page.slug,)),
+                'url': self.request.podcast.reverse(
+                    'page_detail',
+                    args=(page.slug,)
+                ),
                 'text': page.menu_title or page.title,
                 'highlight': page.cta
             }
@@ -50,9 +70,14 @@ class PodcastMixin(object):
         return items
 
     def get_context_data(self, **kwargs):
+        if settings.DOMAINS_OR_SLUGS == 'slugs':
+            base_url = self.request.podcast.build_absolute_uri('/')
+        else:
+            base_url = self.request.build_absolute_uri('/')
+
         return {
             'podcast': self.request.podcast,
-            'base_url': self.request.build_absolute_uri('/'),
+            'base_url': base_url,
             'menu_items': self.build_menu(),
             **super().get_context_data(**kwargs)
         }
@@ -120,12 +145,12 @@ class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
             for category in Category.objects.filter(
                 slug=self.request.GET['category']
             ):
-                return self.request.build_absolute_uri(
-                    category.get_absolute_url()
+                return self.request.podcast.build_absolute_uri(
+                    '?category=%s' % category.slug
                 )
 
         return self.request.build_absolute_uri(
-            reverse('episode_list')
+            self.request.podcast.reverse('episode_list')
         )
 
 
@@ -150,7 +175,7 @@ class SeasonView(EpisodeListView):
 
     def get_canonical_url(self):
         return self.request.build_absolute_uri(
-            reverse('season', kwargs=self.kwargs)
+            self.request.podcast.reverse('season', kwargs=self.kwargs)
         )
 
 
@@ -244,7 +269,7 @@ class PostListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
 
     def get_canonical_url(self):
         return self.request.build_absolute_uri(
-            reverse('blogpost_list')
+            self.request.podcast.reverse('blogpost_list')
         )
 
 

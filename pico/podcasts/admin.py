@@ -41,7 +41,7 @@ class SubscriptionLinkInline(admin.TabularInline):
 
 @admin.register(Podcast)
 class PodcastAdmin(admin.ModelAdmin):
-    list_display = ('name', 'domain')
+    list_display = ('name', 'slug', 'domain')
     prepopulated_fields = {
         'slug': ('name',)
     }

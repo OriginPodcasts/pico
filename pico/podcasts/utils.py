@@ -1,8 +1,8 @@
 from django.core.files import File
+from mimetypes import guess_extension
 from PIL import Image
 from tempfile import mkstemp
 from urllib.parse import urlparse
-from mimetypes import guess_extension
 import imagehash
 import os
 import requests

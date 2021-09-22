@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 {% load thumbnail %}
-{% block header %}{% endblock %}
+
+{% block header %}
+    {% if SITE_SETTINGS.DOMAINS_OR_SLUGS == 'slugs' %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
 
 {% block main %}
     {% block hero %}
@@ -19,7 +24,7 @@
     <div class="o-grid js-grid c-loop">
         {% for object in object_list %}
             <div class="js-post-card-wrap c-post-card-wrap o-grid__col o-grid__col--initial-grow o-grid__col--4-4-s o-grid__col--2-4-m o-grid__col--2-4-l">
-                <a href="//{{ object.domain }}/" class="c-post-card {% if forloop.first %} c-post-card--featured {% endif %}">
+                <a href="{{ object.build_absolute_uri }}" class="c-post-card {% if forloop.first %} c-post-card--featured {% endif %}">
                     {% if object.artwork %}
                         <div class="c-post-card__media">
                             <img alt="{{ object.title }}" class="c-post-card__image lazyload" data-srcset="

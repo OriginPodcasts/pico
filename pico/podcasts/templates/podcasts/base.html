@@ -13,47 +13,14 @@
 {% endblock head %}
 
 {% block brand %}
-    {% if podcast.artwork %}
-        <a href="/">
+    {% if SITE_SETTINGS.DOMAINS_OR_SLUGS == 'domains' %}
+        <a href="{{ podcast.build_absolute_uri }}">
             <img class="c-logo__img" src="{% thumbnail podcast.artwork '64x64' crop=True %}" alt="{{ podcast.name }}">
         </a>
     {% else %}
-        <a class="c-logo__link" href="/">{{ podcast.name }}</a>
+        {{ block.super }}
     {% endif %}
 {% endblock brand %}
-
-{% block menu %}
-    <div class="o-grid__col o-grid__col--4-4-s o-grid__col--2-3-l">
-        <nav class="c-nav-wrap">
-            <ul class="c-nav o-plain-list">
-                {% for item in menu_items %}
-                    <li class="c-nav__item">
-                        <a href="{{ item.url }}" class="{% if item.highlight %}c-btn c-btn--mini{% else %}c-nav__link{% if item.active %} c-nav__link--current{% endif %}{% endif %}">{{ item.text }}</a>
-                    </li>
-                {% endfor %}
-
-                <li class="c-nav__item">
-                    <button class="c-nav__link c-color-mode-btn js-mode-toggle js-mode-toggle-title" title="Enable dark mode">
-                        <span class="u-hidden-visually js-mode-toggle-text">Enable dark mode</span>
-                        <span class="c-color-mode-btn__icon" aria-hidden="true"></span>
-                    </button>
-                </li>
-                <li class="c-nav__item">
-                    <a href="javascript:;" class="toggle-search-button js-search-toggle" aria-label="Search">
-                        <div class="icon icon--ei-search icon--s c-nav__icon">
-                            <svg class="icon__cnt">
-                                <svg viewBox="0 0 50 50"><path d="M23 36c-7.2 0-13-5.8-13-13s5.8-13 13-13 13 5.8 13 13-5.8 13-13 13zm0-24c-6.1 0-11 4.9-11 11s4.9 11 11 11 11-4.9 11-11-4.9-11-11-11z"></path><path d="M32.682 31.267l8.98 8.98-1.414 1.414-8.98-8.98z"></path></svg>
-                            </svg>
-                        </div>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        <div class="js-nav-toggle c-nav-toggle">
-            <span class="c-nav-toggle__icon"></span>
-        </div>
-    </div>
-{% endblock menu %}
 
 {% block pre_main %}
     <div class="c-search js-search">
