@@ -25,7 +25,7 @@ class PodcastListView(SEOMixin, OpenGraphMixin, ListView):
             for podcast in Podcast.objects.all():
                 yield {
                     'url': '/%s/' % podcast.slug,
-                    'text': podcast.name
+                    'text': podcast.short_name or podcast.name
                 }
 
             return

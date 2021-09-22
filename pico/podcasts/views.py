@@ -23,7 +23,7 @@ class PodcastMixin(object):
             for podcast in Podcast.objects.all():
                 yield {
                     'url': podcast.build_absolute_uri(),
-                    'text': podcast.name
+                    'text': podcast.short_name or podcast.name
                 }
 
             return

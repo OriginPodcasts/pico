@@ -32,6 +32,7 @@ class Podcast(models.Model):
         )
 
     name = models.CharField(max_length=100)
+    short_name = models.CharField(max_length=100, null=True, blank=True)
     slug = models.SlugField(max_length=30, unique=True)
     domain = models.CharField(max_length=100, null=True, blank=True)
     rss_feed_url = models.URLField('RSS feed URL', max_length=255, unique=True)
