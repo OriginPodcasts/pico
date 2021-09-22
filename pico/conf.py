@@ -5,6 +5,10 @@ import os
 
 class Settings(object):
     def __init__(self):
+        self.__defaults = {
+            'DOMAINS_OR_SLUGS': 'domains'
+        }
+
         filename = os.path.join(os.getcwd(), 'settings.yaml')
         if not os.path.exists(filename):
             filename = os.path.join(os.getcwd(), 'settings.yml')
@@ -22,7 +26,10 @@ class Settings(object):
             self.__conf = conf
 
     def __getattr__(self, attr):
-        return self.__conf.get(attr.lower(), None)
+        return self.__conf.get(
+            attr.lower(),
+            self.__defaults.get(attr)
+        )
 
 
 settings = Settings()
