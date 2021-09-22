@@ -19,7 +19,7 @@ def download(url):
     handle, filename = mkstemp(ext)
 
     try:
-        for chunk in response.iter_content(chunk_size=1024*1024):
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
             os.write(handle, chunk)
     finally:
         os.close(handle)
