@@ -2,7 +2,7 @@ from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.views.generic.base import View
 from django.views.generic.list import ListView
 from pico.conf import settings
-from pico.podcasts.models import Podcast
+from pico.podcasts.models import Podcast, Page
 from pico.podcasts.tasks import update_feed
 from pico.seo.mixins import SEOMixin, OpenGraphMixin
 import re
@@ -26,6 +26,15 @@ class PodcastListView(SEOMixin, OpenGraphMixin, ListView):
                 yield {
                     'url': '/%s/' % podcast.slug,
                     'text': podcast.short_name or podcast.name
+                }
+
+            for page in Page.objects.filter(
+                podcast=None,
+                menu_visible=True
+            ):
+                yield {
+                    'url': page.get_absolute_url(),
+                    'text': page.menu_title or page.title
                 }
 
             return

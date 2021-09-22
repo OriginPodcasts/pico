@@ -26,6 +26,24 @@ class PodcastMixin(object):
                     'text': podcast.short_name or podcast.name
                 }
 
+            for page in Page.objects.filter(
+                podcast=None,
+                menu_visible=True
+            ):
+                yield {
+                    'url': page.get_absolute_url(),
+                    'text': page.menu_title or page.title
+                }
+
+            if Post.objects.filter(
+                published__lte=timezone.now(),
+                podcast=None
+            ).exists():
+                yield {
+                    'url': '/blog/',
+                    'text': 'Blog'
+                }
+
             return
 
         yield {
@@ -42,7 +60,9 @@ class PodcastMixin(object):
                 'text': str(season)
             }
 
-        if self.request.podcast.blog_posts.exists():
+        if self.request.podcast.blog_posts.filter(
+            published__lte=timezone.now()
+        ).exists():
             yield {
                 'url': self.request.podcast.reverse('blogpost_list'),
                 'text': 'Blog'
@@ -70,10 +90,9 @@ class PodcastMixin(object):
         return items
 
     def get_context_data(self, **kwargs):
-        if settings.DOMAINS_OR_SLUGS == 'slugs':
+        base_url = self.request.build_absolute_uri('/')
+        if settings.DOMAINS_OR_SLUGS == 'slugs' and self.request.podcast:
             base_url = self.request.podcast.build_absolute_uri('/')
-        else:
-            base_url = self.request.build_absolute_uri('/')
 
         return {
             'podcast': self.request.podcast,
@@ -83,13 +102,22 @@ class PodcastMixin(object):
         }
 
     def get_og_title(self):
-        return self.request.podcast.name
+        if self.request.podcast:
+            return self.request.podcast.name
+
+        return super().get_og_title()
 
     def get_og_description(self):
-        return self.request.podcast.subtitle
+        if self.request.podcast:
+            return self.request.podcast.subtitle
+
+        return super().get_og_description()
 
     def get_og_site_name(self):
-        return self.request.podcast.name
+        if self.request.podcast:
+            return self.request.podcast.name
+
+        return super().get_og_site_name()
 
     def get_twitter_card(self):
         return self.twitter_card
@@ -101,7 +129,7 @@ class PodcastMixin(object):
         return self.get_og_description()
 
     def get_twitter_creator(self):
-        if self.request.podcast.twitter_username:
+        if self.request.podcast and self.request.podcast.twitter_username:
             return '@%s' % self.request.podcast.twitter_username
 
         return super().get_twitter_creator()
@@ -245,7 +273,7 @@ class PostListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
     paginate_by = 10
 
     def get_seo_title(self):
-        if self.request.podcast.subtitle:
+        if self.request.podcast and self.request.podcast.subtitle:
             return 'Blog – %s' % self.request.podcast.subtitle
 
         return 'Blog'
@@ -274,9 +302,12 @@ class PostListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
         return context
 
     def get_canonical_url(self):
-        return self.request.build_absolute_uri(
-            self.request.podcast.reverse('blogpost_list')
-        )
+        if self.request.podcast:
+            return self.request.build_absolute_uri(
+                self.request.podcast.reverse('blogpost_list')
+            )
+
+        return self.request.build_absolute_uri('/blog/')
 
 
 class PostDetailView(
@@ -285,10 +316,13 @@ class PostDetailView(
     model = Post
 
     def get_seo_title(self):
-        return '%s | %s' % (
-            self.object.title,
-            self.request.podcast.name
-        )
+        if self.request.podcast:
+            return '%s | %s' % (
+                self.object.title,
+                self.request.podcast.name
+            )
+
+        return self.object.title
 
     def get_seo_description(self):
         return self.object.summary
@@ -303,7 +337,8 @@ class PostDetailView(
         if self.object.image:
             return self.object.image
 
-        return self.object.podcast.artwork
+        if self.object.podcast:
+            return self.object.podcast.artwork
 
     def get_queryset(self):
         return super().get_queryset().filter(
@@ -317,10 +352,13 @@ class PageDetailView(
     model = Page
 
     def get_seo_title(self):
-        return '%s | %s' % (
-            self.object.title,
-            self.request.podcast.name
-        )
+        if self.object.podcast_id:
+            return '%s | %s' % (
+                self.object.title,
+                self.object.podcast.name
+            )
+
+        return self.object.title
 
     def get_og_title(self):
         return self.object.title
@@ -329,7 +367,8 @@ class PageDetailView(
         if self.object.image:
             return self.object.image
 
-        return self.object.podcast.artwork
+        if self.object.podcast_id:
+            return self.object.podcast.artwork
 
     def get_queryset(self):
         return super().get_queryset().filter(

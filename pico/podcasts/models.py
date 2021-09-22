@@ -430,8 +430,14 @@ class Episode(models.Model):
 
 class Post(models.Model):
     def upload_image(self, filename):
-        return 'podcasts/%s/blog/%s%s' % (
-            self.podcast.slug,
+        if self.podcast:
+            return 'podcasts/%s/blog/%s%s' % (
+                self.podcast.slug,
+                self.slug,
+                os.path.splitext(filename)[-1]
+            )
+
+        return 'blog/%s%s' % (
             self.slug,
             os.path.splitext(filename)[-1]
         )
@@ -439,7 +445,9 @@ class Post(models.Model):
     podcast = models.ForeignKey(
         Podcast,
         on_delete=models.CASCADE,
-        related_name='blog_posts'
+        related_name='blog_posts',
+        null=True,
+        blank=True
     )
 
     author = models.ForeignKey(
@@ -471,7 +479,10 @@ class Post(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return self.podcast.reverse('blogpost_detail', args=(self.slug,))
+        if self.podcast_id and settings.DOMAINS_OR_SLUGS == 'slugs':
+            return '/%s/blog/%s/' % (self.podcast.slug, self.slug)
+
+        return '/blog/%s/' % self.slug
 
     class Meta:
         unique_together = ('slug', 'podcast')
@@ -480,8 +491,14 @@ class Post(models.Model):
 
 class Page(models.Model):
     def upload_image(self, filename):
-        return 'podcasts/%s/pages/%s%s' % (
-            self.podcast.slug,
+        if self.podcast:
+            return 'podcasts/%s/pages/%s%s' % (
+                self.podcast.slug,
+                self.slug,
+                os.path.splitext(filename)[-1]
+            )
+
+        return 'pages/%s%s' % (
             self.slug,
             os.path.splitext(filename)[-1]
         )
@@ -489,7 +506,9 @@ class Page(models.Model):
     podcast = models.ForeignKey(
         Podcast,
         on_delete=models.CASCADE,
-        related_name='pages'
+        related_name='pages',
+        null=True,
+        blank=True
     )
 
     title = models.CharField(max_length=255)
@@ -517,7 +536,10 @@ class Page(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return self.podcast.reverse('page_detail', args=(self.slug,))
+        if self.podcast_id and settings.DOMAINS_OR_SLUGS == 'slugs':
+            return '/%s/%s/' % (self.podcast.slug, self.slug)
+
+        return '/%s/' % self.slug
 
     class Meta:
         unique_together = ('slug', 'podcast')

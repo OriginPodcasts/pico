@@ -3,7 +3,8 @@ from django.http.response import HttpResponsePermanentRedirect, Http404
 from pico.conf import settings
 from urllib.parse import urlsplit, urlunsplit
 from django.urls import resolve
-from .models import Podcast
+from .models import Podcast, Page
+from .views import PageDetailView, PostListView, PostDetailView
 
 
 def podcast_domain_middleware(get_response):
@@ -44,6 +45,27 @@ def podcast_domain_middleware(get_response):
                 ):
                     request.podcast = podcast
                     return get_response(request)
+
+                if kwargs['podcast'] == 'blog':
+                    request.podcast = None
+
+                    if 'slug' in kwargs:
+                        view = PostDetailView.as_view()
+                        response = view(request, slug=kwargs['slug'])
+                    else:
+                        view = PostListView.as_view()
+                        response = view(request)
+
+                    return response.render()
+
+                for page in Page.objects.filter(
+                    slug=kwargs['podcast'],
+                    podcast=None
+                ):
+                    view = PageDetailView.as_view()
+                    request.podcast = None
+                    response = view(request, slug=page.slug)
+                    return response.render()
 
                 raise Http404('Podcast not found.')
 
