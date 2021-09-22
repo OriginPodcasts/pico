@@ -76,14 +76,16 @@
                 </div>
             </div>
 
-            <div class="o-grid">
-                <div class="o-grid__col o-grid__col--full">
-                    <div class="c-title-bar">
-                        <h3 class="c-title-bar__title">Latest episodes</h3>
+            {% if object_list.exists %}
+                <div class="o-grid">
+                    <div class="o-grid__col o-grid__col--full">
+                        <div class="c-title-bar">
+                            <h3 class="c-title-bar__title">Latest episodes</h3>
+                        </div>
                     </div>
                 </div>
-            </div>
-        {% elif category and page_obj.number == 1 %}
+            {% endif %}
+        {% elif category and page_obj.number == 1 and object_list.exists %}
             <div class="c-archive">
                 <div class="o-grid">
                     <div class="o-grid__col o-grid__col--center o-grid__col--4-4-s o-grid__col--3-4-m o-grid__col--2-4-l">
@@ -91,7 +93,7 @@
                     </div>
                 </div>
             </div>
-        {% else %}
+        {% elif object_list.exists %}
             <div class="c-archive">
                 <div class="o-grid">
                     <div class="o-grid__col o-grid__col--center o-grid__col--4-4-s o-grid__col--3-4-m o-grid__col--2-4-l">
@@ -102,39 +104,51 @@
         {% endif %}
     {% endblock hero %}
 
-    <div class="o-grid js-grid c-loop">
-        {% for object in object_list %}
-            <div class="js-post-card-wrap c-post-card-wrap o-grid__col o-grid__col--initial-grow o-grid__col--4-4-s o-grid__col--2-4-m o-grid__col--2-4-l">
-                <a href="{{ object.get_absolute_url }}" class="c-post-card {% if forloop.first %} c-post-card--featured {% endif %}">
-                    {% if object.artwork %}
-                        <div class="c-post-card__media">
-                            <img alt="{{ object.title }}" class="c-post-card__image lazyload" data-srcset="
-                                {% thumbnail object.artwork '320x320' %} 320w,
-                                {% thumbnail object.artwork '578x578' %} 578w,
-                                {% thumbnail object.artwork '1156x1156' %} 1156w"
-                                sizes="(min-width: 1360px) 578px, (min-width: 640px) calc(44.86vw - 23px), calc(100vw - 48px)"
-                                data-src="{{ object.artwork.url }}">
-                        </div>
-                    {% endif %}
-
-                    <div class="c-post-card__content{% if not object.artwork %} c-post-card__content--no-image{% endif %}">
-                        <div class="c-post-card__meta">
-                            <span class="c-post-card__number"></span>
-                            <time class="c-post-card__date" datetime="{{ object.published|date:'Y-m-d' }}" title="{{ object.published|date:'jS F Y'}}">{{ object.published|date:'Y.m.d' }}</time>
-
-                            <div class="c-post-card__visibility c-post-card__visibility--public">
-                                <span class="paid">Paid</span>
-                                <span class="members">Members</span>
-                                <span class="public">Public</span>
+    {% if object_list.exists %}
+        <div class="o-grid js-grid c-loop">
+            {% for object in object_list %}
+                <div class="js-post-card-wrap c-post-card-wrap o-grid__col o-grid__col--initial-grow o-grid__col--4-4-s o-grid__col--2-4-m o-grid__col--2-4-l">
+                    <a href="{{ object.get_absolute_url }}" class="c-post-card {% if forloop.first %} c-post-card--featured {% endif %}">
+                        {% if object.artwork %}
+                            <div class="c-post-card__media">
+                                <img alt="{{ object.title }}" class="c-post-card__image lazyload" data-srcset="
+                                    {% thumbnail object.artwork '320x320' %} 320w,
+                                    {% thumbnail object.artwork '578x578' %} 578w,
+                                    {% thumbnail object.artwork '1156x1156' %} 1156w"
+                                    sizes="(min-width: 1360px) 578px, (min-width: 640px) calc(44.86vw - 23px), calc(100vw - 48px)"
+                                    data-src="{{ object.artwork.url }}">
                             </div>
-                        </div>
+                        {% endif %}
 
-                        <h2 class="c-post-card__title">{{ object.title }}</h2>
-                    </div>
-                </a>
-            </div>
-        {% endfor %}
-    </div>
+                        <div class="c-post-card__content{% if not object.artwork %} c-post-card__content--no-image{% endif %}">
+                            <div class="c-post-card__meta">
+                                <span class="c-post-card__number"></span>
+                                <time class="c-post-card__date" datetime="{{ object.published|date:'Y-m-d' }}" title="{{ object.published|date:'jS F Y'}}">{{ object.published|date:'Y.m.d' }}</time>
+
+                                <div class="c-post-card__visibility c-post-card__visibility--public">
+                                    <span class="paid">Paid</span>
+                                    <span class="members">Members</span>
+                                    <span class="public">Public</span>
+                                </div>
+                            </div>
+
+                            <h2 class="c-post-card__title">{{ object.title }}</h2>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% elif not podcast.episodes.exists %}
+        <h3 class="u-text-center">There aren&rsquo;t any episodes available yet.</h3>
+        <p class="u-text-center">
+            To make sure you don&rsquo;t miss our first episode, follow the
+            podcast using one of the buttons above.
+        </p>
+    {% else %}
+        <p class="u-text-center">
+            Sorry, no episodes can be found matching these criteria.
+        </p>
+    {% endif %}
 
     <div class="o-grid">
         {% if page_obj.has_next %}
