@@ -41,6 +41,15 @@ class PodcastListView(SEOMixin, OpenGraphMixin, ListView):
                     'text': page.menu_title or page.title
                 }
 
+            if Post.objects.filter(
+                published__lte=timezone.now(),
+                podcast=None
+            ).exists():
+                yield {
+                    'url': '/blog/',
+                    'text': 'Blog'
+                }
+
             return
 
     def build_menu(self):
