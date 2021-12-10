@@ -49,6 +49,14 @@ class Podcast(models.Model):
     facebook_username = models.CharField(max_length=30, null=True, blank=True)
     instagram_username = models.CharField(max_length=30, null=True, blank=True)
 
+    about_page = models.OneToOneField(
+        'Page',
+        on_delete=models.SET_NULL,
+        related_name='about_page_for',
+        null=True,
+        blank=True
+    )
+
     def __str__(self):
         return self.name
 

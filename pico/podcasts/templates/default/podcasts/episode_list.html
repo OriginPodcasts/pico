@@ -26,8 +26,11 @@
                         <div class="c-hero__content">
                             <div class="c-hero__description">
                                 <h2><a href="{{ base_url }}">{{ podcast.name }}</a></h2>
-                                {% if podcast.subtitle %}
-                                    {{ podcast.subtitle|linebreaks }}
+                                {% if podcast.subtitle or podcast.about_page_id %}
+                                    <p>
+                                        {% if podcast.subtitle %}{{ podcast.subtitle }}{% endif %}
+                                        {% if podcast.about_page_id %}<a href="{{ podcast.about_page.get_absolute_url }}" class="u-link">{% if podcast.subtitle %}Find out more{% else %}{{ podcast.about_page.title }}{% endif %}</a>{% endif %}
+                                    </p>
                                 {% endif %}
                             </div>
 
