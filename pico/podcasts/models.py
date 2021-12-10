@@ -57,6 +57,15 @@ class Podcast(models.Model):
         blank=True
     )
 
+    ordering = models.CharField(
+        max_length=1,
+        choices=(
+            ('r', 'reverse-chronological'),
+            ('n', 'episode number')
+        ),
+        default='r'
+    )
+
     colour_brand = models.CharField(
         'brand',
         max_length=8,

@@ -56,7 +56,8 @@ class PodcastAdmin(admin.ModelAdmin):
                     'short_name',
                     'slug',
                     'domain',
-                    'rss_feed_url'
+                    'rss_feed_url',
+                    'ordering'
                 )
             }
         ),
