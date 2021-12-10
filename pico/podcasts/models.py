@@ -254,6 +254,16 @@ class Podcast(models.Model):
 
         return '//%s/css/' % (self.domain)
 
+    def get_order_by(self):
+        if self.ordering == 'n':
+            return (
+                'season__number',
+                'number',
+                'bonus'
+            )
+
+        return ('-published',)
+
     class Meta:
         ordering = ('name',)
 

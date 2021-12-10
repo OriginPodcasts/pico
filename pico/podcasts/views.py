@@ -159,6 +159,8 @@ class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
                 categories__slug=self.request.GET['category']
             )
 
+        order_by = self.request.podcast.get_order_by()
+        queryset = queryset.order_by(*order_by)
         return queryset
 
     def get_context_data(self, **kwargs):
