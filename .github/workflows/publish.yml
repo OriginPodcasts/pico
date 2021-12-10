@@ -1,0 +1,23 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      v*
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9.9
+          architecture: x64
+      - name: Install Python libraries
+        run: pip install -U pip twine setuptools wheel
+      - name: Build package
+        run: python setup.py sdist
+      - name: Publish to Twine
+        run: twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }} --skip-existing
