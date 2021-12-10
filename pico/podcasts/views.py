@@ -381,3 +381,12 @@ class FeedRedirectView(View):
         return HttpResponsePermanentRedirect(
             request.podcast.rss_feed_url
         )
+
+
+class PodcastStylesheetView(DetailView):
+    template_name = 'podcasts/styles.css'
+    content_type = 'text/css'
+    model = Podcast
+
+    def get_object(self):
+        return self.request.podcast

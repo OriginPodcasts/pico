@@ -2,7 +2,8 @@ from django.urls import path, re_path
 from django.conf import settings
 from pico.podcasts.views import (
     EpisodeListView, SeasonView, EpisodeDetailView,
-    PostListView, PostDetailView, PageDetailView, FeedRedirectView
+    PostListView, PostDetailView, PageDetailView, FeedRedirectView,
+    PodcastStylesheetView
 )
 
 
@@ -49,7 +50,8 @@ urlpatterns = (
         PostDetailView.as_view(),
         name='blogpost_detail'
     ),
-    path('rss/', FeedRedirectView.as_view(), name='feed_redirect')
+    path('rss/', FeedRedirectView.as_view(), name='feed_redirect'),
+    path('css/', PodcastStylesheetView.as_view(), name='feed_stylesheet')
 )
 
 
