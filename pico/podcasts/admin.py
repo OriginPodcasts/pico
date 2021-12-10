@@ -47,6 +47,60 @@ class PodcastAdmin(admin.ModelAdmin):
     }
 
     inlines = (SeasonInline, SubscriptionLinkInline)
+    fieldsets = (
+        (
+            None,
+            {
+                'fields': (
+                    'name',
+                    'short_name',
+                    'slug',
+                    'domain',
+                    'rss_feed_url'
+                )
+            }
+        ),
+        (
+            'Artwork and description',
+            {
+                'fields': (
+                    'artwork',
+                    'subtitle',
+                    'description',
+                    'about_page'
+                )
+            }
+        ),
+        (
+            'Social media',
+            {
+                'fields': (
+                    'twitter_username',
+                    'facebook_username',
+                    'instagram_username'
+                ),
+                'classes': ('collapse',),
+            }
+        ),
+        (
+            'Colours',
+            {
+                'fields': (
+                    'colour_brand',
+                    'colour_white',
+                    'colour_dark',
+                    'colour_text',
+                    'colour_grey',
+                    'colour_error',
+                    'colour_success',
+                    'colour_border',
+                    'bg_colour',
+                    'bg_grey'
+                ),
+                'classes': ('collapse',),
+            }
+        )
+    )
 
 
 @admin.register(Episode)

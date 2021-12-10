@@ -57,6 +57,66 @@ class Podcast(models.Model):
         blank=True
     )
 
+    colour_brand = models.CharField(
+        'brand',
+        max_length=8,
+        default='6219ff'
+    )
+
+    colour_white = models.CharField(
+        'white',
+        max_length=8,
+        default='ffffff'
+    )
+
+    colour_dark = models.CharField(
+        'dark',
+        max_length=8,
+        default='1c203c'
+    )
+
+    colour_text = models.CharField(
+        'text',
+        max_length=8,
+        default='1c203c'
+    )
+
+    colour_grey = models.CharField(
+        'grey',
+        max_length=8,
+        default='626265'
+    )
+
+    colour_error = models.CharField(
+        'error messages',
+        max_length=8,
+        default='d50000'
+    )
+
+    colour_success = models.CharField(
+        'success messages',
+        max_length=8,
+        default='008040'
+    )
+
+    colour_border = models.CharField(
+        'border',
+        max_length=8,
+        default='f3ece2'
+    )
+
+    bg_colour = models.CharField(
+        'background',
+        max_length=8,
+        default='ffffff'
+    )
+
+    bg_grey = models.CharField(
+        'grey background',
+        max_length=8,
+        default='f4f0eb'
+    )
+
     def __str__(self):
         return self.name
 
