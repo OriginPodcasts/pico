@@ -239,6 +239,12 @@ class Podcast(models.Model):
 
         return '//%s/%s' % (self.domain, path)
 
+    def get_rss_url(self):
+        if settings.DOMAINS_OR_SLUGS == 'slugs':
+            return '/%s/css/' % (self.slug)
+
+        return '//%s/css/' % (self.domain)
+
     class Meta:
         ordering = ('name',)
 
