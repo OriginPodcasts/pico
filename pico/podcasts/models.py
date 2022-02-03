@@ -182,7 +182,7 @@ class Podcast(models.Model):
                     podcast=self
                 )
             elif episode.artwork:
-                if not compare_image(image, episode.artwork):
+                if image and not compare_image(image, episode.artwork):
                     image = None
 
             episode.title = item['title']
