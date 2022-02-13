@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'watson',
     'captcha',
     'pico.podcasts',
+    'pico.contact',
     'pico.seo',
     'pico.miditags',
     'pico.websub',

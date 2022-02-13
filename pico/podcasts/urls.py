@@ -1,4 +1,4 @@
-from django.urls import path, re_path
+from django.urls import path, re_path, include
 from django.conf import settings
 from pico.podcasts.views import (
     EpisodeListView, SeasonView, EpisodeDetailView,
@@ -54,8 +54,8 @@ urlpatterns = (
     ),
     path('rss/', FeedRedirectView.as_view(), name='feed_redirect'),
     path('css/', PodcastStylesheetView.as_view(), name='feed_stylesheet'),
-    path('~/content/', ContentListView.as_view(), name='content_list')
-
+    path('~/content/', ContentListView.as_view(), name='content_list'),
+    path('contact/', include('pico.contact.urls'))
 )
 
 

@@ -11,6 +11,7 @@ urlpatterns = (
     path('markdownx/', include('markdownx.urls')),
     path('~/content/', ContentListView.as_view(), name='content_list'),
     path('~/websub/', include('pico.websub.urls')),
+    path('contact/', include('pico.contact.urls')),
     path('', PodcastListView.as_view(), name='podcast_list')
 )
 
