@@ -1,0 +1,11 @@
+Host: c14c-62-30-203-154.ngrok.io
+User-Agent: FeedFetcher-Google; (+http://www.google.com/feedfetcher.html)
+Accept: */*
+Accept-Encoding: gzip, deflate, br
+Cache-Control: no-cache,max-age=0
+From: googlebot(at)googlebot.com
+Pragma: no-cache
+X-Forwarded-For: 66.102.8.231
+X-Forwarded-Proto: https
+
+GET /~/websub/a16c77c8-86e7-4946-82f3-b452d56f1ed9/?hub.topic=https://feeds.transistor.fm/leopard&hub.challenge=4046532728754963973&hub.mode=unsubscribe

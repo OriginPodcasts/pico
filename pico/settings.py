@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'pico.podcasts',
     'pico.seo',
     'pico.miditags',
+    'pico.websub',
     'pico.theming'
 ]
 
@@ -117,3 +118,15 @@ MARKDOWNX_IMAGE_MAX_SIZE = {
     'size': (1204, 0),
     'quality': 90
 }
+
+WEBSUB_CALLBACK_SECURE = (
+    os.getenv('WEBSUB_CALLBACK_SECURE') and
+    True or
+    not DEBUG
+)
+
+WEBSUB_CALLBACK_DOMAIN = (
+    os.getenv('WEBSUB_CALLBACK_DOMAIN') or
+    os.getenv('DOMAIN') or
+    'localhost'
+)

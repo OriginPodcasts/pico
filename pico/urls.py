@@ -12,6 +12,7 @@ urlpatterns = (
     path('markdownx/', include('markdownx.urls')),
     path('~/ping/', csrf_exempt(PodcastPingView.as_view()), name='api_ping'),
     path('~/content/', ContentListView.as_view(), name='content_list'),
+    path('~/websub/', include('pico.websub.urls')),
     path('', PodcastListView.as_view(), name='podcast_list')
 )
 
