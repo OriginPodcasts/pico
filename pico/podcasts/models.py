@@ -1,5 +1,5 @@
 from dateutil.parser import parse as parse_date
-from django.db import models
+from django.db import models, transaction
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import html, text
@@ -149,81 +149,82 @@ class Podcast(models.Model):
 
     def update_feed(self, feed, episode_callback=None):
         for item in feed['items']:
-            season_number = item.get('itunes_season')
-            episode_number = item.get('itunes_episode')
-            episode_type = item.get('itunes_episodetype')
-            author = item.get('author')
-            season = None
+            with transaction.atomic():
+                season_number = item.get('itunes_season')
+                episode_number = item.get('itunes_episode')
+                episode_type = item.get('itunes_episodetype')
+                author = item.get('author')
+                season = None
 
-            if season_number:
-                season = self.seasons.filter(
-                    number=season_number
-                ).first()
-
-                if season is None:
-                    season = self.seasons.create(
+                if season_number:
+                    season = self.seasons.filter(
                         number=season_number
+                    ).select_for_update().first()
+
+                    if season is None:
+                        season = self.seasons.create(
+                            number=season_number
+                        )
+
+                image = item.get('image', {}).get('href', '')
+                if image:
+                    image = download(image)
+
+                    if self.artwork and not compare_image(image, self.artwork):
+                        image = None
+
+                description = item.get('summary')
+                summary = html.strip_tags(item.get('subtitle'))
+
+                for detail in item.get('content', []):
+                    if detail['type'] == 'text/html':
+                        description = detail['value']
+                        break
+
+                enclosure = None
+                for link in item.get('links', []):
+                    if link['rel'] == 'enclosure':
+                        enclosure = link['href']
+
+                date = parse_date(item['published'])
+                episode = self.episodes.filter(
+                    guid=item['id']
+                ).select_for_update().first()
+
+                if episode is None:
+                    episode = Episode(
+                        guid=item['id'],
+                        podcast=self
                     )
+                elif episode.artwork:
+                    if image and not compare_image(image, episode.artwork):
+                        image = None
 
-            image = item.get('image', {}).get('href', '')
-            if image:
-                image = download(image)
+                episode.title = item['title']
+                episode.published = date
+                episode.season = season
+                episode.number = episode_number or 0
+                episode.bonus = episode_type == 'bonus'
+                episode.trailer = episode_type == 'trailer'
 
-                if self.artwork and not compare_image(image, self.artwork):
-                    image = None
+                if image is not None:
+                    episode.artwork = image
 
-            description = item.get('summary')
-            summary = html.strip_tags(item.get('subtitle'))
+                episode.summary = summary
+                episode.feed_description = html2text(description)
+                episode.enclosure_url = enclosure
+                episode.save()
 
-            for detail in item.get('content', []):
-                if detail['type'] == 'text/html':
-                    description = detail['value']
-                    break
+                if author:
+                    for name in author.split(','):
+                        name_stripped = name.strip()
+                        host = Host.objects.filter(
+                            name__iexact=name_stripped
+                        ).first()
 
-            enclosure = None
-            for link in item.get('links', []):
-                if link['rel'] == 'enclosure':
-                    enclosure = link['href']
-
-            date = parse_date(item['published'])
-            episode = self.episodes.filter(
-                guid=item['id']
-            ).first()
-
-            if episode is None:
-                episode = Episode(
-                    guid=item['id'],
-                    podcast=self
-                )
-            elif episode.artwork:
-                if image and not compare_image(image, episode.artwork):
-                    image = None
-
-            episode.title = item['title']
-            episode.published = date
-            episode.season = season
-            episode.number = episode_number or 0
-            episode.bonus = episode_type == 'bonus'
-            episode.trailer = episode_type == 'trailer'
-
-            if image is not None:
-                episode.artwork = image
-
-            episode.summary = summary
-            episode.feed_description = html2text(description)
-            episode.enclosure_url = enclosure
-            episode.save()
-
-            if author:
-                for name in author.split(','):
-                    name_stripped = name.strip()
-                    host = Host.objects.filter(
-                        name__iexact=name_stripped
-                    ).first()
-
-                    if host is not None:
-                        episode.hosts.add(host)
-                        self.hosts.add(host)
+                        if host is not None:
+                            episode.hosts.add(host)
+                            self.hosts.add(host)
 
             if callable(episode_callback):
                 episode_callback(episode)
