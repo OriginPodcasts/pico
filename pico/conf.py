@@ -6,7 +6,8 @@ import os
 class Settings(object):
     def __init__(self):
         self.__defaults = {
-            'DOMAINS_OR_SLUGS': 'domains'
+            'DOMAINS_OR_SLUGS': 'domains',
+            'CONTACT_FORM': True
         }
 
         filename = os.path.join(os.getcwd(), 'settings.yaml')
