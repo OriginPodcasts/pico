@@ -1,4 +1,5 @@
 from django.db import transaction
+from . import signals
 
 
 @transaction.atomic
@@ -19,3 +20,10 @@ def unsubscribe(topic):
         obj.unsubscribe()
 
     return subscriptions
+
+
+__all__ = (
+    'subscribe',
+    'unsubscribe',
+    'signals'
+)
