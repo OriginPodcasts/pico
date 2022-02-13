@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'easy_thumbnails',
     'django_rq',
     'watson',
+    'captcha',
     'pico.podcasts',
     'pico.seo',
     'pico.miditags',
@@ -130,3 +131,6 @@ WEBSUB_CALLBACK_DOMAIN = (
     os.getenv('DOMAIN') or
     'localhost'
 )
+
+RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
+RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
