@@ -6,6 +6,7 @@ from django.utils import html, text
 from feedparser import parse as parse_feed
 from html2text import html2text
 from markdownx.models import MarkdownxField
+from pico import websub
 from pico.conf import settings
 from urllib.parse import urlparse
 from .query import PodcastQuerySet, EpisodeQuerySet, PostQuerySet
@@ -126,8 +127,21 @@ class Podcast(models.Model):
         default='f4f0eb'
     )
 
+    subscription = models.ForeignKey(
+        'websub.Subscription',
+        on_delete=models.SET_NULL,
+        null=True,
+        editable=False
+    )
+
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.subscription:
+            self.subscription = websub.subscribe(self.rss_feed_url)
+
+        super().save(*args, **kwargs)
 
     def check_feed(self, episode_callback=None):
         feed_data = parse_feed(self.rss_feed_url)
@@ -231,13 +245,22 @@ class Podcast(models.Model):
         return self.__apple_podcasts_id
 
     def reverse(self, urlname, args=(), kwargs={}):
+        urlconf = 'pico.urls'
+
         if settings.DOMAINS_OR_SLUGS == 'slugs':
             if any(kwargs):
                 kwargs['podcast'] = self.slug
             else:
                 args = (self.slug,) + args
+        else:
+            urlconf = 'pico.podcasts.urls'
 
-        return reverse(urlname, args=args, kwargs=kwargs)
+        return reverse(
+            urlname,
+            args=args,
+            kwargs=kwargs,
+            urlconf=urlconf
+        )
 
     def build_absolute_uri(self, path=''):
         while path.startswith('/'):
