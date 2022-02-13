@@ -287,6 +287,13 @@ class EpisodeDetailView(
             number=self.kwargs['number']
         )
 
+    def get_context_data(self, **kwargs):
+        return {
+            'next_object': self.object.get_next_episode(),
+            'previous_object': self.object.get_previous_episode(),
+            **super().get_context_data(**kwargs)
+        }
+
 
 class PostListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
     model = Post

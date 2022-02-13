@@ -561,6 +561,20 @@ class Episode(models.Model):
 
         return ''
 
+    def get_next_episode(self):
+        return self.podcast.episodes.exclude(
+            pk=self.pk
+        ).filter(
+            published__gte=self.published
+        ).order_by('published').first()
+
+    def get_previous_episode(self):
+        return self.podcast.episodes.exclude(
+            pk=self.pk
+        ).filter(
+            published__lte=self.published
+        ).order_by('published').last()
+
     class Meta:
         unique_together = ('guid', 'podcast')
         ordering = ('-published',)
