@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.views.generic import CreateView
+from pico import menu
 from pico.seo.mixins import SEOMixin
 from .forms import MessageForm
 from .models import Message
@@ -14,6 +15,7 @@ class CreateMessageView(SEOMixin, CreateView):
         return {
             'next': self.get_success_url(),
             'podcast': getattr(self.request, 'podcast', None),
+            'menu_items': menu.build(self.request),
             **super().get_context_data(**kwargs)
         }
 
