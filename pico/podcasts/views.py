@@ -11,7 +11,7 @@ from pico.seo.mixins import (
 )
 
 from watson import search as watson
-from .models import Podcast, Episode, Season, Post, Page, Category
+from .models import Podcast, Episode, Season, Post, Page, Category, Review
 
 
 class PodcastMixin(object):
@@ -326,6 +326,26 @@ class PageDetailView(
         return super().get_queryset().filter(
             podcast=self.request.podcast
         )
+
+
+class ReviewListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
+    model = Review
+    paginate_by = 10
+
+    def get_seo_title(self):
+        return 'Reviews'
+
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            podcast=self.request.podcast,
+            approved=True
+        ).select_related()
+
+    def get_canonical_url(self):
+        if self.request.podcast:
+            return self.request.build_absolute_uri(
+                self.request.podcast.reverse('review_list')
+            )
 
 
 class FeedRedirectView(View):
