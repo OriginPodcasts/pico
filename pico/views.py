@@ -1,11 +1,10 @@
-from django.http.response import HttpResponse, HttpResponseBadRequest
+from django.http.response import HttpResponse
 from django.utils import timezone
 from django.views.generic.base import View
 from django.views.generic.list import ListView
 from markdown import markdown
 from pico.conf import settings
 from pico.podcasts.models import Podcast, Page, Episode, Post
-from pico.podcasts.tasks import update_feed
 from pico.seo.mixins import SEOMixin, OpenGraphMixin
 import json
 import re
@@ -79,37 +78,6 @@ class PodcastListView(SEOMixin, OpenGraphMixin, ListView):
             'menu_items': self.build_menu(),
             **super().get_context_data(**kwargs)
         }
-
-
-class PodcastPingView(View):
-    def get(self, request):
-        topic = request.GET.get('hub.topic')
-        mode = request.GET.get('hub.mode')
-        challenge = request.GET.get('hub.challenge')
-
-        for podcast in Podcast.objects.filter(
-            rss_feed_url=topic
-        ):
-            if mode in ('subscribe', 'unsubscribe') and challenge:
-                return HttpResponse(challenge)
-
-        return HttpResponseBadRequest('FAIL')
-
-    def post(self, request):
-        topic = request.META.get('HTTP_LINK')
-
-        if topic:
-            match = LINK_REGEX.match(topic)
-            if match is not None:
-                url = match.groups()[0]
-
-                for podcast in Podcast.objects.filter(
-                    rss_feed_url=url
-                ):
-                    update_feed.delay(podcast.pk, request.body)
-                    return HttpResponse('OK')
-
-        return HttpResponseBadRequest('FAIL')
 
 
 class ContentListView(View):
