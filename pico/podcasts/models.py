@@ -1,5 +1,6 @@
 from dateutil.parser import parse as parse_date
 from django.db import models, transaction
+from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import html, text
@@ -663,3 +664,16 @@ class Page(models.Model):
     class Meta:
         unique_together = ('slug', 'podcast')
         ordering = ('ordering',)
+
+
+@transaction.atomic
+@receiver(websub.signals.published)
+def websub_published(sender, topic, data, *args, **kwargs):
+    for podcast in Podcast.objects.filter(
+        rss_feed_url=topic
+    ).select_for_update():
+        if data:
+            feed_data = parse_feed(data)
+            podcast.update_feed(feed_data, episode_callback=print)
+        else:
+            podcast.check_feed(episode_callback=print)
