@@ -339,7 +339,10 @@ class ReviewListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
         return super().get_queryset().filter(
             podcast=self.request.podcast,
             approved=True
-        ).select_related()
+        ).select_related().order_by(
+            '-rating',
+            '-published'
+        )
 
     def get_canonical_url(self):
         if self.request.podcast:
