@@ -101,12 +101,14 @@ class ContentListView(View):
 
     def get_querysets(self):
         limit = self.request.GET.get('limit', 'all')
-        querysets = [
-            Episode.objects.all(),
-            Post.objects.filter(
-                published__lte=timezone.now()
-            )
-        ]
+        episodes = Episode.objects.all()
+        posts = Post.objects.filter(published__lte=timezone.now())
+
+        if getattr(self.request, 'podcast', None):
+            episodes = episodes.filter(podcast=self.request.podcast)
+            posts = posts.filter(podcast=self.request.podcast)
+
+        querysets = [episodes, posts]
 
         if 'published_at' not in self.get_fields():
             querysets.append(
