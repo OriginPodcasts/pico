@@ -66,6 +66,7 @@ class PodcastAdmin(admin.ModelAdmin):
             {
                 'fields': (
                     'artwork',
+                    'banner',
                     'subtitle',
                     'description',
                     'about_page'

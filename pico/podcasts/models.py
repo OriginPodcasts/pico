@@ -33,6 +33,12 @@ class Podcast(models.Model):
             os.path.splitext(filename)[-1]
         )
 
+    def upload_banner(self, filename):
+        return 'podcasts/%s/upload_banner%s' % (
+            self.slug,
+            os.path.splitext(filename)[-1]
+        )
+
     name = models.CharField(max_length=100)
     short_name = models.CharField(max_length=100, null=True, blank=True)
     slug = models.SlugField(max_length=30, unique=True)
@@ -42,6 +48,13 @@ class Podcast(models.Model):
     artwork = models.ImageField(
         max_length=255,
         upload_to=upload_artwork
+    )
+
+    banner = models.ImageField(
+        max_length=255,
+        upload_to=upload_banner,
+        null=True,
+        blank=True
     )
 
     subtitle = models.CharField(max_length=255, null=True, blank=True)
@@ -357,6 +370,13 @@ class Season(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
 
     artwork = models.ImageField(
+        max_length=255,
+        upload_to=upload_artwork,
+        null=True,
+        blank=True
+    )
+
+    banner = models.ImageField(
         max_length=255,
         upload_to=upload_artwork,
         null=True,
