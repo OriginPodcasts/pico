@@ -135,5 +135,7 @@ WEBSUB_CALLBACK_DOMAIN = (
 
 RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
+
 REVIEW_DIRECTORIES = {
+    'apple_podcasts': 'pico.contrib.apple.reviews.get_reviews'
 }
