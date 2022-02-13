@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import html, text
+from django.utils import timezone
 from feedparser import parse as parse_feed
 from html2text import html2text
 from markdownx.models import MarkdownxField
@@ -258,6 +259,45 @@ class Podcast(models.Model):
                             return match.groups()[0]
 
         return self.__apple_podcasts_id
+
+    def get_menu_items(self):
+        yield {
+            'url': '/',
+            'text': 'Home'
+        }
+
+        for season in self.seasons.order_by('-number'):
+            yield {
+                'url': self.reverse(
+                    'season',
+                    args=(season.number,)
+                ),
+                'text': str(season)
+            }
+
+        if self.blog_posts.filter(
+            published__lte=timezone.now()
+        ).exists():
+            yield {
+                'url': self.reverse('blogpost_list'),
+                'text': 'Blog'
+            }
+
+        for page in self.pages.filter(menu_visible=True):
+            yield {
+                'url': self.reverse(
+                    'page_detail',
+                    args=(page.slug,)
+                ),
+                'text': page.menu_title or page.title,
+                'highlight': page.cta
+            }
+
+        if settings.CONTACT_FORM:
+            yield {
+                'url': '/contact/',
+                'text': 'Contact'
+            }
 
     def reverse(self, urlname, args=(), kwargs={}):
         urlconf = 'pico.urls'
