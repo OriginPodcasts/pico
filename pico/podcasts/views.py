@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.views.generic.base import View
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+from pico import menu
 from pico.conf import settings
 from pico.seo.mixins import (
     SEOMixin, OpenGraphMixin, OpenGraphArticleMixin
@@ -14,82 +15,6 @@ from .models import Podcast, Episode, Season, Post, Page, Category
 
 
 class PodcastMixin(object):
-    def get_menu_items(self):
-        if settings.DOMAINS_OR_SLUGS == 'slugs':
-            yield {
-                'url': self.request.build_absolute_uri('/'),
-                'text': 'Home'
-            }
-
-            for podcast in Podcast.objects.all():
-                yield {
-                    'url': podcast.build_absolute_uri(),
-                    'text': podcast.short_name or podcast.name
-                }
-
-            for page in Page.objects.filter(
-                podcast=None,
-                menu_visible=True
-            ):
-                yield {
-                    'url': page.get_absolute_url(),
-                    'text': page.menu_title or page.title
-                }
-
-            if Post.objects.filter(
-                published__lte=timezone.now(),
-                podcast=None
-            ).exists():
-                yield {
-                    'url': '/blog/',
-                    'text': 'Blog'
-                }
-
-            return
-
-        yield {
-            'url': '/',
-            'text': 'Home'
-        }
-
-        for season in self.request.podcast.seasons.order_by('-number'):
-            yield {
-                'url': self.request.podcast.reverse(
-                    'season',
-                    args=(season.number,)
-                ),
-                'text': str(season)
-            }
-
-        if self.request.podcast.blog_posts.filter(
-            published__lte=timezone.now()
-        ).exists():
-            yield {
-                'url': self.request.podcast.reverse('blogpost_list'),
-                'text': 'Blog'
-            }
-
-        for page in self.request.podcast.pages.filter(menu_visible=True):
-            yield {
-                'url': self.request.podcast.reverse(
-                    'page_detail',
-                    args=(page.slug,)
-                ),
-                'text': page.menu_title or page.title,
-                'highlight': page.cta
-            }
-
-    def build_menu(self):
-        items = list(self.get_menu_items())
-
-        for item in items:
-            if item['url'] == self.request.path:
-                item['active'] = True
-
-            item['url'] = self.request.build_absolute_uri(item['url'])
-
-        return items
-
     def get_context_data(self, **kwargs):
         base_url = self.request.build_absolute_uri('/')
         if settings.DOMAINS_OR_SLUGS == 'slugs' and self.request.podcast:
@@ -98,7 +23,7 @@ class PodcastMixin(object):
         return {
             'podcast': self.request.podcast,
             'base_url': base_url,
-            'menu_items': self.build_menu(),
+            'menu_items': menu.build(self.request),
             **super().get_context_data(**kwargs)
         }
 
