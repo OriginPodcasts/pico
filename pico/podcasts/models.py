@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils import html, text
 from django.utils import timezone
 from feedparser import parse as parse_feed
+from hashlib import md5
 from html2text import html2text
 from importlib import import_module
 from markdownx.models import MarkdownxField
@@ -812,6 +813,17 @@ class Review(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def hash(self):
+        return md5(
+            (
+                '%s/%s' % (
+                    self.directory.name,
+                    self.author
+                )
+            ).encode('utf-8')
+        ).hexdigest()
 
     def save(self, *args, **kwargs):
         if self.approved is None:
