@@ -9,6 +9,7 @@ from pico.seo.mixins import (
     SEOMixin, OpenGraphMixin, OpenGraphArticleMixin
 )
 
+from watson import search as watson
 from .models import Podcast, Episode, Season, Post, Page, Category
 
 
@@ -140,6 +141,12 @@ class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
     og_type = 'website'
     paginate_by = 10
 
+    def get_template_names(self):
+        return (
+            'podcasts/%s/episode_list.html' % self.request.podcast.slug,
+            'podcasts/episode_list.html'
+        )
+
     def get_seo_title(self):
         if self.request.podcast.subtitle:
             return '%s – %s' % (
@@ -152,11 +159,19 @@ class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
     def get_queryset(self):
         queryset = super().get_queryset().filter(
             podcast=self.request.podcast
+        ).prefetch_related(
+            'categories'
         )
 
         if self.request.GET.get('category'):
             queryset = queryset.filter(
                 categories__slug=self.request.GET['category']
+            )
+
+        if self.request.GET.get('search'):
+            return watson.filter(
+                queryset,
+                self.request.GET['search']
             )
 
         order_by = self.request.podcast.get_order_by()
@@ -170,6 +185,9 @@ class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
             context['category'] = Category.objects.filter(
                 slug=self.request.GET['category']
             ).first()
+
+        if self.request.GET.get('search'):
+            context['search'] = self.request.GET['search']
 
         return context
 
