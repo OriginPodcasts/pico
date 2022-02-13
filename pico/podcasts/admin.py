@@ -2,7 +2,8 @@ from django.contrib import admin
 from .models import (
     Directory, SubscriptionLink,
     Podcast, Season, Host, Episode,
-    Post, Page, Category
+    Post, Page, Category,
+    Review
 )
 
 
@@ -151,3 +152,34 @@ class PageAdmin(admin.ModelAdmin):
     prepopulated_fields = {
         'slug': ('title',)
     }
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('title', 'directory', 'rating', 'published', 'approved')
+    list_filter = ('podcast', 'directory', 'rating', 'approved')
+    fields = (
+        'podcast',
+        'directory',
+        'country',
+        'title',
+        'body',
+        'author',
+        'published',
+        'rating',
+        'approved'
+    )
+
+    readonly_fields = (
+        'podcast',
+        'directory',
+        'country',
+        'title',
+        'body',
+        'author',
+        'published',
+        'rating'
+    )
+
+    def has_add_permission(self, request):
+        return False

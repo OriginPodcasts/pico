@@ -1,4 +1,5 @@
 from dateutil.parser import parse as parse_date
+from django.conf import settings as django
 from django.db import models, transaction
 from django.dispatch import receiver
 from django.template.loader import render_to_string
@@ -7,6 +8,7 @@ from django.utils import html, text
 from django.utils import timezone
 from feedparser import parse as parse_feed
 from html2text import html2text
+from importlib import import_module
 from markdownx.models import MarkdownxField
 from pico import websub
 from pico.conf import settings
@@ -260,6 +262,10 @@ class Podcast(models.Model):
 
         return self.__apple_podcasts_id
 
+    def check_reviews(self, review_callback=None):
+        for link in self.subscription_links.iterator():
+            link.check_reviews(review_callback)
+
     def get_menu_items(self):
         yield {
             'url': '/',
@@ -364,6 +370,43 @@ class Directory(models.Model):
     def __str__(self):
         return self.name
 
+    def get_reviews(self, link):
+        module_name = text.slugify(self.name).replace('-', '_')
+        reviewer = django.REVIEW_DIRECTORIES.get(module_name)
+
+        if reviewer is None:
+            return
+
+        module, func = reviewer.rsplit('.', 1)
+        module = import_module(module)
+        func = getattr(module, func)
+
+        for review in func(link.url):
+            with transaction.atomic():
+                remote_id = review['id']
+                obj = link.podcast.reviews.filter(
+                    directory=self,
+                    remote_id=remote_id,
+                    country=review['country']
+                ).first()
+
+                if obj is None:
+                    obj = Review(
+                        podcast=link.podcast,
+                        directory=self,
+                        remote_id=remote_id,
+                        country=review['country']
+                    )
+
+                obj.title = review['title']
+                obj.body = review['body']
+                obj.author = review['author']
+                obj.published = review['published']
+                obj.rating = review['rating']
+                obj.save()
+
+            yield obj
+
     class Meta:
         ordering = ('ordering',)
         verbose_name_plural = 'directories'
@@ -386,6 +429,11 @@ class SubscriptionLink(models.Model):
 
     def __str__(self):
         return urlparse(self.url).netloc
+
+    def check_reviews(self, review_callback=None):
+        for review in self.directory.get_reviews(self):
+            if review_callback is not None and callable(review_callback):
+                review_callback(review)
 
     class Meta:
         ordering = ('directory__ordering',)
@@ -738,6 +786,45 @@ class Page(models.Model):
     class Meta:
         unique_together = ('slug', 'podcast')
         ordering = ('ordering',)
+
+
+class Review(models.Model):
+    podcast = models.ForeignKey(
+        'Podcast',
+        related_name='reviews',
+        on_delete=models.CASCADE
+    )
+
+    directory = models.ForeignKey(
+        Directory,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+
+    remote_id = models.CharField(max_length=255, editable=False)
+    country = models.CharField(max_length=50, null=True)
+    title = models.CharField(max_length=255)
+    body = models.TextField(null=True, blank=True)
+    author = models.CharField(max_length=50)
+    published = models.DateTimeField()
+    rating = models.DecimalField(decimal_places=1, max_digits=2, null=True)
+    approved = models.BooleanField(null=True)
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if self.approved is None:
+            self.approved = self.rating > 3
+        else:
+            self.approved = False
+
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ('-published',)
+        get_latest_by = 'published'
+        unique_together = ('remote_id', 'directory', 'podcast')
 
 
 @transaction.atomic
