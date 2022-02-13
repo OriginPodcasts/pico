@@ -4,7 +4,8 @@ from pico.podcasts.views import (
     EpisodeListView, SeasonView, EpisodeDetailView,
     PostListView, PostDetailView, PageDetailView, ReviewListView,
     FeedRedirectView,
-    PodcastStylesheetView
+    PodcastStylesheetView,
+    EpisodePrefixRedirectView
 )
 
 from pico.views import ContentListView
@@ -61,7 +62,12 @@ urlpatterns = (
     path('rss/', FeedRedirectView.as_view(), name='feed_redirect'),
     path('css/', PodcastStylesheetView.as_view(), name='feed_stylesheet'),
     path('~/content/', ContentListView.as_view(), name='content_list'),
-    path('contact/', include('pico.contact.urls'))
+    path('contact/', include('pico.contact.urls')),
+    path(
+        'episode<path:path>',
+        EpisodePrefixRedirectView.as_view(),
+        name='episode_redirect'
+    )
 )
 
 

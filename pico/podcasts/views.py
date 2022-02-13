@@ -220,6 +220,11 @@ class EpisodeDetailView(
         }
 
 
+class EpisodePrefixRedirectView(View):
+    def get(self, request, path):
+        return HttpResponsePermanentRedirect('/%s' % path)
+
+
 class PostListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
     model = Post
     paginate_by = 10
