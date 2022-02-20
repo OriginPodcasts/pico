@@ -145,6 +145,12 @@ class Podcast(models.Model):
         default='f4f0eb'
     )
 
+    head_html = models.TextField(
+        'head HTML',
+        null=True,
+        blank=True
+    )
+
     subscription = models.ForeignKey(
         'websub.Subscription',
         on_delete=models.SET_NULL,

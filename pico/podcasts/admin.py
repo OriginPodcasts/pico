@@ -102,6 +102,13 @@ class PodcastAdmin(admin.ModelAdmin):
                 ),
                 'classes': ('collapse',),
             }
+        ),
+        (
+            'Website',
+            {
+                'fields': ('head_html',),
+                'classes': ('collapse',)
+            }
         )
     )
 

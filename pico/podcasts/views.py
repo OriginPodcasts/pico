@@ -24,6 +24,7 @@ class PodcastMixin(object):
             'podcast': self.request.podcast,
             'base_url': base_url,
             'menu_items': menu.build(self.request),
+            'head_html': self.request.podcast.head_html,
             **super().get_context_data(**kwargs)
         }
 

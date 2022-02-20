@@ -7,6 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         {% block css %}{% endblock %}
         {% include 'seo/head.html' %}
+        {% if head_html %}{{ head_html|safe }}{% endif %}
         {% block head %}{% endblock %}
     </head>
     <body>
