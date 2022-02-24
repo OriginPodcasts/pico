@@ -58,7 +58,7 @@ class PodcastAdmin(admin.ModelAdmin):
                     'slug',
                     'domain',
                     'rss_feed_url',
-                    'ordering'
+                    'episode_ordering'
                 )
             }
         ),
@@ -106,7 +106,7 @@ class PodcastAdmin(admin.ModelAdmin):
         (
             'Website',
             {
-                'fields': ('head_html',),
+                'fields': ('head_html', 'ordering'),
                 'classes': ('collapse',)
             }
         )

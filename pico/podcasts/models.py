@@ -76,7 +76,8 @@ class Podcast(models.Model):
         blank=True
     )
 
-    ordering = models.CharField(
+    ordering = models.PositiveIntegerField(default=0)
+    episode_ordering = models.CharField(
         max_length=1,
         choices=(
             ('r', 'reverse-chronological'),
@@ -346,7 +347,7 @@ class Podcast(models.Model):
         return '//%s/css/' % (self.domain)
 
     def get_order_by(self):
-        if self.ordering == 'n':
+        if self.episode_ordering == 'n':
             return (
                 'season__number',
                 'number',
@@ -356,7 +357,7 @@ class Podcast(models.Model):
         return ('-published',)
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('ordering', 'name',)
 
 
 class Directory(models.Model):
