@@ -210,7 +210,8 @@ class EpisodeDetailView(
             )
 
         return self.get_queryset().get(
-            number=self.kwargs['number']
+            number=self.kwargs['number'],
+            trailer=False
         )
 
     def get_context_data(self, **kwargs):
