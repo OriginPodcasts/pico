@@ -68,10 +68,25 @@ class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
     paginate_by = 10
 
     def get_template_names(self):
-        return (
-            'podcasts/%s/episode_list.html' % self.request.podcast.slug,
-            'podcasts/episode_list.html'
+        templates = []
+        page = self.request.GET.get('page', '1')
+
+        if page == '1' or not page:
+            templates.extend(
+                [
+                    'podcasts/%s/index.html' % self.request.podcast.slug,
+                    'podcasts/index.html'
+                ]
+            )
+
+        templates.extend(
+            [
+                'podcasts/%s/episode_list.html' % self.request.podcast.slug,
+                'podcasts/episode_list.html'
+            ]
         )
+
+        return tuple(templates)
 
     def get_seo_title(self):
         if self.request.podcast.subtitle:
@@ -132,7 +147,11 @@ class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
 
 
 class SeasonView(EpisodeListView):
-    template_name = 'podcasts/season.html'
+    def get_template_names(self):
+        return (
+            'podcasts/%s/season.html' % self.request.podcast.slug,
+            'podcasts/season.html'
+        )
 
     def get_queryset(self):
         return super().get_queryset().filter(
@@ -162,6 +181,12 @@ class EpisodeDetailView(
     model = Episode
     bonus = False
     trailer = False
+
+    def get_template_names(self):
+        return (
+            'podcasts/%s/episode_detail.html' % self.request.podcast.slug,
+            'podcasts/episode_detail.html'
+        )
 
     def get_seo_title(self):
         return '%s | %s' % (
@@ -231,6 +256,12 @@ class PostListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
     model = Post
     paginate_by = 10
 
+    def get_template_names(self):
+        return (
+            'podcasts/%s/post_list.html' % self.request.podcast.slug,
+            'podcasts/post_list.html'
+        )
+
     def get_seo_title(self):
         if self.request.podcast and self.request.podcast.subtitle:
             return 'Blog – %s' % self.request.podcast.subtitle
@@ -274,6 +305,12 @@ class PostDetailView(
 ):
     model = Post
 
+    def get_template_names(self):
+        return (
+            'podcasts/%s/post_detail.html' % self.request.podcast.slug,
+            'podcasts/post_detail.html'
+        )
+
     def get_seo_title(self):
         if self.request.podcast:
             return '%s | %s' % (
@@ -309,6 +346,12 @@ class PageDetailView(
     PodcastMixin, SEOMixin, OpenGraphArticleMixin, DetailView
 ):
     model = Page
+
+    def get_template_names(self):
+        return (
+            'podcasts/%s/page_detail.html' % self.request.podcast.slug,
+            'podcasts/page_detail.html'
+        )
 
     def get_seo_title(self):
         if self.object.podcast_id:
