@@ -76,6 +76,8 @@ class Podcast(models.Model):
         blank=True
     )
 
+    contact_form = models.BooleanField(default=settings.CONTACT_FORM)
+
     ordering = models.PositiveIntegerField(default=0)
     episode_ordering = models.CharField(
         max_length=1,
@@ -307,7 +309,7 @@ class Podcast(models.Model):
                 'highlight': page.cta
             }
 
-        if settings.CONTACT_FORM:
+        if self.contact_form:
             yield {
                 'url': '/contact/',
                 'text': 'Contact'

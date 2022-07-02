@@ -106,7 +106,7 @@ class PodcastAdmin(admin.ModelAdmin):
         (
             'Website',
             {
-                'fields': ('head_html', 'ordering'),
+                'fields': ('head_html', 'ordering', 'contact_form'),
                 'classes': ('collapse',)
             }
         )
