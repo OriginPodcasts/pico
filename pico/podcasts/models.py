@@ -238,7 +238,7 @@ class Podcast(models.Model):
                     episode.artwork = image
 
                 episode.summary = summary
-                episode.feed_description = html2text(description)
+                episode.feed_description = html2text(description, bodywidth=0)
                 episode.enclosure_url = enclosure
                 episode.save()
 

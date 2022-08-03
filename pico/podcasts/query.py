@@ -36,7 +36,7 @@ class PodcastQuerySet(QuerySet):
             domain=domain,
             rss_feed_url=url,
             artwork=image and download(image) or None,
-            description=html2text(meta['description'])
+            description=html2text(meta['description'], bodywidth=0)
         )
 
         for episode in episodes:
@@ -101,7 +101,7 @@ class EpisodeQuerySet(QuerySet):
             artwork=image,
             summary=summary,
             enclosure_url=enclosure,
-            feed_description=html2text(description)
+            feed_description=html2text(description, bodywidth=0)
         )
 
         if author:
