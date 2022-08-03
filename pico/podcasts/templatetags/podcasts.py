@@ -7,6 +7,7 @@ import re
 
 NEW_SPEAKER_EX = r'^\[([\d:]+)\] ([^ :]+(?: [^ :]+)?): (.+)$'
 SAME_SPEAKER_EX = r'^\[([\d:]+)\] (.+)$'
+TIME_SPEAKER_EX = r'^\[([\d:]+)\] ?$'
 
 
 register = Library()
@@ -84,6 +85,9 @@ def transcript(value):
                 )
             )
 
+            continue
+
+        if re.match(TIME_SPEAKER_EX, line):
             continue
 
         lines.append(
