@@ -5,7 +5,7 @@ from markdown import markdown as md
 import re
 
 
-NEW_SPEAKER_EX = r'^\[([\d:]+)\] (.+): (.+)$'
+NEW_SPEAKER_EX = r'^\[([\d:]+)\] ([^ :]+(?: [^ :]+)?): (.+)$'
 SAME_SPEAKER_EX = r'^\[([\d:]+)\] (.+)$'
 
 
