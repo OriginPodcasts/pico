@@ -7,7 +7,7 @@ class Command(BaseCommand):
     help = 'Check podcast feeds for new data'
 
     def handle(self, *args, **options):
-        for podcast in Podcast.objects.all():
+        for podcast in Podcast.objects.iterator():
             print(podcast)
             with transaction.atomic():
                 podcast.check_feed(
