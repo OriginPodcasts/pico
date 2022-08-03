@@ -18,6 +18,7 @@ from .query import PodcastQuerySet, EpisodeQuerySet, PostQuerySet
 from .utils import download, compare_image
 import os
 import re
+import requests
 
 
 PLAYER_REGEXES = (
@@ -240,6 +241,11 @@ class Podcast(models.Model):
                 episode.summary = summary
                 episode.feed_description = html2text(description, bodywidth=0)
                 episode.enclosure_url = enclosure
+                episode.transcript_url = item.pop(
+                    'podcast_transcript',
+                    {}
+                ).get('url', '')
+
                 episode.save()
 
                 if author:
@@ -597,6 +603,15 @@ class Episode(models.Model):
         unique=True
     )
 
+    transcript_url = models.URLField(
+        'transcript URL',
+        max_length=255,
+        null=True,
+        blank=True,
+        editable=False
+    )
+
+    transcript = models.TextField(null=True, blank=True)
     body = MarkdownxField(null=True, blank=True)
 
     categories = models.ManyToManyField(
@@ -672,6 +687,24 @@ class Episode(models.Model):
         ).filter(
             published__lte=self.published
         ).order_by('published').last()
+
+    def download_transcript(self):
+        response = requests.get(self.transcript_url)
+        if response.status_code == 200:
+            self.transcript = response.text
+
+    def save(self, *args, **kwargs):
+        new = not self.pk
+        if not new:
+            old = type(self).objects.get(pk=self.pk)
+            old_transcript_url = old.transcript_url
+        else:
+            old_transcript_url = None
+
+        if self.transcript_url and self.transcript_url != old_transcript_url:
+            self.download_transcript()
+
+        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ('guid', 'podcast')
