@@ -1,20 +1,23 @@
+from django.db.models import Avg
 from django.http.response import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
+from django.utils import html, timezone
 from django.views.generic.base import View
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+from easy_thumbnails.files import get_thumbnailer
+from markdown import markdown
 from pico import menu
 from pico.conf import settings
 from pico.seo.mixins import (
-    SEOMixin, OpenGraphMixin, OpenGraphArticleMixin
+    SEOMixin, OpenGraphMixin, OpenGraphArticleMixin, LinkedDataMixin
 )
 
 from watson import search as watson
 from .models import Podcast, Episode, Season, Post, Page, Category, Review
 
 
-class PodcastMixin(object):
+class PodcastMixin(LinkedDataMixin):
     def get_context_data(self, **kwargs):
         base_url = self.request.build_absolute_uri('/')
         if settings.DOMAINS_OR_SLUGS == 'slugs' and self.request.podcast:
@@ -65,6 +68,7 @@ class PodcastMixin(object):
 class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
     model = Episode
     og_type = 'website'
+    ld_type = 'PodcastSeries'
     paginate_by = 10
 
     def get_template_names(self):
@@ -96,6 +100,57 @@ class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
             )
 
         return self.request.podcast.name
+
+    def get_ld_attributes(self):
+        obj = self.request.podcast
+        attrs = {
+            'name': obj.name,
+            'description': (
+                obj.description and
+                html.strip_tags(markdown(obj.description)) or
+                obj.subtitle or
+                ''
+            ),
+            'url': obj.build_absolute_uri('/'),
+            'author': [
+                {
+                    '@type': 'Person',
+                    'name': host.name,
+                    'description': host.biography
+                } for host in obj.hosts.all()
+            ]
+        }
+
+        if obj.short_name:
+            attrs['alternateName'] = obj.short_name
+
+        if obj.episodes.exists():
+            attrs['startDate'] = obj.episodes.order_by(
+                'published'
+            ).first().published.isoformat()
+
+        if obj.reviews.exists():
+            attrs['aggregateRating'] = {
+                '@type': 'AggregateRating',
+                'ratingCount': obj.reviews.count(),
+                'reviewCount': obj.reviews.count(),
+                'ratingValue': float(
+                    obj.reviews.aggregate(
+                        avg=Avg('rating')
+                    ).get('avg', 0)
+                )
+            }
+
+        thumbnailer = get_thumbnailer(obj.artwork)
+        thumbnail = thumbnailer.get_thumbnail(
+            {
+                'size': (512, 512),
+                'crop': True
+            }
+        )
+
+        attrs['thumbnailUrl'] = thumbnail.url
+        return attrs
 
     def get_queryset(self):
         queryset = super().get_queryset().filter(
@@ -147,6 +202,34 @@ class EpisodeListView(PodcastMixin, SEOMixin, OpenGraphMixin, ListView):
 
 
 class SeasonView(EpisodeListView):
+    ld_type = 'CreativeWorkSeason'
+
+    def get_ld_attributes(self):
+        obj = self.request.podcast.seasons.get(
+            number=self.kwargs['number']
+        )
+
+        data = {
+            'name': str(obj),
+            'numberOfEpisodes': obj.episodes.count(),
+            'seasonNumber': obj.number,
+            'url': self.request.podcast.build_absolute_uri(
+                obj.get_absolute_url()
+            ),
+            'partOfSeries': {
+                '@type': 'PodcastSeries',
+                'name': self.request.podcast.name,
+                'url': self.request.podcast.build_absolute_uri('/')
+            }
+        }
+
+        if obj.episodes.exists():
+            data['startDate'] = obj.episodes.order_by(
+                'published'
+            ).first().published.isoformat()
+
+        return data
+
     def get_template_names(self):
         return (
             'podcasts/%s/season.html' % self.request.podcast.slug,
@@ -181,12 +264,7 @@ class EpisodeDetailView(
     model = Episode
     bonus = False
     trailer = False
-
-    def get_template_names(self):
-        return (
-            'podcasts/%s/episode_detail.html' % self.request.podcast.slug,
-            'podcasts/episode_detail.html'
-        )
+    ld_type = 'PodcastEpisode'
 
     def get_seo_title(self):
         return '%s | %s' % (
@@ -212,6 +290,57 @@ class EpisodeDetailView(
                 return self.object.season.artwork
 
         return self.object.podcast.artwork
+
+    def get_ld_attributes(self):
+        obj = self.get_object()
+        data = {
+            'episodeNumber': obj.number,
+            'name': obj.title,
+            'description': (
+                obj.feed_description and
+                html.strip_tags(markdown(obj.feed_description)) or
+                obj.summary or
+                ''
+            ),
+            'associatedMedia': {
+                '@type': 'AudioObject',
+                'contentUrl': obj.enclosure_url
+            },
+            'author': [
+                {
+                    '@type': 'Person',
+                    'name': host.name,
+                    'description': host.biography
+                } for host in obj.hosts.all()
+            ]
+        }
+
+        if obj.season_id:
+            data['partOfSeason'] = {
+                '@type': 'CreativeWorkSeason',
+                'name': str(obj.season),
+                'url': self.request.podcast.build_absolute_uri(
+                    obj.season.get_absolute_url()
+                )
+            }
+
+        thumbnailer = get_thumbnailer(obj.artwork or obj.podcast.artwork)
+        thumbnail = thumbnailer.get_thumbnail(
+            {
+                'size': (512, 512),
+                'crop': True
+            }
+        )
+
+        data['thumbnailUrl'] = thumbnail.url
+
+        return data
+
+    def get_template_names(self):
+        return (
+            'podcasts/%s/episode_detail.html' % self.request.podcast.slug,
+            'podcasts/episode_detail.html'
+        )
 
     def get_queryset(self):
         queryset = super().get_queryset().filter(
