@@ -38,6 +38,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'pico.urls'
+PODCAST_URLCONF = 'pico.podcasts.urls'
 
 TEMPLATES = [
     {

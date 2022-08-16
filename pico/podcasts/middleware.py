@@ -1,8 +1,9 @@
+from django.conf import settings as django
 from django.core.exceptions import ImproperlyConfigured
 from django.http.response import HttpResponsePermanentRedirect, Http404
+from django.urls import resolve
 from pico.conf import settings
 from urllib.parse import urlsplit, urlunsplit
-from django.urls import resolve
 from .models import Podcast, Page
 from .views import PageDetailView, PostListView, PostDetailView
 
@@ -29,7 +30,7 @@ def podcast_domain_middleware(get_response):
         for podcast in Podcast.objects.filter(
             domain=domain
         ):
-            request.urlconf = 'pico.podcasts.urls'
+            request.urlconf = django.PODCAST_URLCONF
             request.podcast = podcast
 
         return get_response(request)
