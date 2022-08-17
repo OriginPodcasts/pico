@@ -4,6 +4,7 @@
 
 .transcript-timecode {
     margin-right: .5rem;
+    cursor: pointer;
 }
 
 .transcript-speaker {
